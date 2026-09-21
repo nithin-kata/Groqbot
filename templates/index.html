@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Groq AI Assistant - Ultra Fast Intelligent Chat</title>
+  <meta name="description" content="A blazing fast AI chatbot powered by Groq LPU and Flask, supporting real-time streaming and multiple LLM models.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Highlight.js for Code Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="app-wrapper">
+    
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="url(#bolt-grad)" stroke="url(#bolt-grad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="bolt-grad" x1="3" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#F59E0B"/>
+                <stop offset="1" stop-color="#EF4444"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Groq<span class="brand-highlight">Chat</span></h1>
+          <span class="brand-badge">LPU™ Accelerated</span>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <!-- Model Selector -->
+        <div class="control-group">
+          <label for="modelSelect" class="control-label">Model</label>
+          <div class="select-wrapper">
+            <select id="modelSelect" class="styled-select" aria-label="Select AI Model">
+              <option value="llama-3.1-8b-instant" selected>Llama 3.1 8B Instant (Recommended)</option>
+              <option value="llama3-70b-8192">Llama 3 70B</option>
+              <option value="llama3-8b-8192">Llama 3 8B</option>
+              <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+              <option value="gemma2-9b-it">Gemma 2 9B</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- API Key Status Pill -->
+        <div id="statusIndicator" class="status-pill status-loading" title="Checking Groq API Status">
+          <span class="status-dot"></span>
+          <span class="status-text">Checking Key...</span>
+        </div>
+
+        <!-- Settings Modal Trigger -->
+        <button id="settingsBtn" class="icon-btn" title="Chat Settings" aria-label="Chat Settings">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+
+        <!-- Clear Chat Button -->
+        <button id="clearChatBtn" class="icon-btn" title="Clear Conversation" aria-label="Clear Conversation">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Missing API Key Alert Banner (Hidden when configured) -->
+    <div id="keyAlertBanner" class="alert-banner hidden">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-content">
+        <strong>Groq API Key Not Configured:</strong>
+        <span>Add your key to the <code>.env</code> file: <code>GROQ_API_KEY=gsk_...</code> and restart the server. Get your key free at <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com</a>.</span>
+      </div>
+      <button id="dismissAlertBtn" class="alert-close" aria-label="Dismiss">&times;</button>
+    </div>
+
+    <!-- Chat Messages Container -->
+    <main id="chatContainer" class="chat-container">
+      
+      <!-- Welcome Hero (Displayed when conversation is empty) -->
+      <div id="welcomeHero" class="welcome-hero">
+        <div class="hero-icon-wrapper">
+          <div class="hero-glow"></div>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            <circle cx="9" cy="10" r="1"></circle>
+            <circle cx="12" cy="10" r="1"></circle>
+            <circle cx="15" cy="10" r="1"></circle>
+          </svg>
+        </div>
+        <h2 class="hero-title">Experience Ultra-Fast Groq Intelligence</h2>
+        <p class="hero-subtitle">Sub-second inference powered by custom LPUs. Ask anything, brainstorm code, or analyze complex ideas.</p>
+
+        <!-- Prompt Suggestions -->
+        <div class="suggestions-grid">
+          <button class="suggestion-card" data-prompt="Explain quantum computing like I am 12 years old with vivid analogies.">
+            <span class="suggestion-tag">💡 Science</span>
+            <span class="suggestion-text">Explain quantum computing simply with vivid analogies.</span>
+          </button>
+          <button class="suggestion-card" data-prompt="Write a Python script to fetch the current weather using a free REST API. Include error handling.">
+            <span class="suggestion-tag">🐍 Python</span>
+            <span class="suggestion-text">Write a Python script with error handling to call an API.</span>
+          </button>
+          <button class="suggestion-card" data-prompt="Help me brainstorm 5 unique software product ideas utilizing modern AI agents.">
+            <span class="suggestion-tag">🚀 Startup</span>
+            <span class="suggestion-text">Brainstorm 5 unique product ideas with autonomous AI agents.</span>
+          </button>
+          <button class="suggestion-card" data-prompt="How do transformers work in deep learning? Provide an intuitive breakdown of self-attention.">
+            <span class="suggestion-tag">🧠 Machine Learning</span>
+            <span class="suggestion-text">How does the self-attention mechanism in Transformers work?</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Messages -->
+      <div id="messagesList" class="messages-list"></div>
+
+      <!-- Typing / Streaming Indicator -->
+      <div id="typingIndicator" class="typing-indicator hidden">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <span class="typing-label">Groq LPU is thinking...</span>
+      </div>
+    </main>
+
+    <!-- Chat Input Area -->
+    <footer class="input-area">
+      <div class="input-container">
+        <form id="chatForm" class="chat-form">
+          <textarea
+            id="userInput"
+            class="chat-textarea"
+            placeholder="Type your message here... (Shift + Enter for new line)"
+            rows="1"
+            required
+            aria-label="Chat input"
+          ></textarea>
+          
+          <div class="input-actions">
+            <!-- Stop Generation Button (Shown during streaming) -->
+            <button type="button" id="stopBtn" class="action-btn stop-btn hidden" title="Stop generating">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="6" width="12" height="12" rx="2"></rect>
+              </svg>
+              <span>Stop</span>
+            </button>
+
+            <!-- Send Button -->
+            <button type="submit" id="sendBtn" class="action-btn send-btn" title="Send message" aria-label="Send message">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="input-footer-note">
+        <span>Groq AI can make mistakes. Verify critical facts. Built with Flask &amp; Groq Cloud API.</span>
+      </div>
+    </footer>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Chat Settings</h3>
+          <button id="closeModalBtn" class="modal-close" aria-label="Close Settings">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="systemPromptInput">System Instruction</label>
+            <textarea
+              id="systemPromptInput"
+              class="styled-textarea"
+              rows="3"
+              placeholder="e.g. You are an expert Python software engineer..."
+            >You are an intelligent, helpful, and friendly AI assistant powered by Groq and LLaMA.</textarea>
+            <small class="field-hint">Instructs the model how to behave or roleplay.</small>
+          </div>
+
+          <div class="form-group">
+            <div class="slider-header">
+              <label for="tempSlider">Temperature: <span id="tempValue">0.7</span></label>
+            </div>
+            <input type="range" id="tempSlider" min="0" max="1.5" step="0.05" value="0.7" class="styled-slider">
+            <div class="slider-labels">
+              <span>Precise (0.0)</span>
+              <span>Balanced (0.7)</span>
+              <span>Creative (1.5)</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="resetSettingsBtn" class="btn btn-secondary">Reset to Default</button>
+          <button id="saveSettingsBtn" class="btn btn-primary">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Marked.js for Markdown Rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <!-- Highlight.js for Code Highlighting -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- Main Application Script -->
+  <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>
